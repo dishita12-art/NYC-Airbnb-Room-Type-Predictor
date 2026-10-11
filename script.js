@@ -311,7 +311,7 @@
     set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
   };
 
-  let API = store.get("rtp.api", "http://127.0.0.1:8000");
+  let API = store.get("rtp.api", "https://nyc-airbnb-room-type-predictor-3ryw.onrender.com");
   let history = store.get("rtp.history", []);
   let lastPayload = null;
 
