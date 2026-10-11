@@ -2,16 +2,19 @@
 
 A machine learning project that predicts the **room type** of a New York Airbnb listing (Entire home/apt, Private room, or Shared room) from its location, price, booking rules, reviews and host activity.
 
-It includes:
+**Live demo:** https://dishita12-art.github.io/NYC-Airbnb-Room-Type-Predictor/
+**API docs:** https://nyc-airbnb-room-type-predictor-3ryw.onrender.com/docs
 
-- a trained scikit-learn pipeline (`model_pipeline.pkl`)
-- a **FastAPI** backend that serves predictions
-- a dark-theme web UI built with plain HTML, CSS and JavaScript
-- a **Google Colab notebook** showing how the model was built
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dishita12-art/NYC-Airbnb-Room-Type-Predictor/blob/main/Nyc_airbnb_roomtype_classification.ipynb)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/YOUR-USERNAME/YOUR-REPO/blob/main/notebooks/YOUR_NOTEBOOK.ipynb)
+> The API runs on a free Render plan, which sleeps when idle. The first prediction after a break can take up to a minute while the server wakes up.
 
+## What's inside
 
+- A trained scikit-learn pipeline (`model_pipeline.pkl`)
+- A **FastAPI** backend that serves predictions (deployed on Render)
+- A dark-theme web UI built with plain HTML, CSS and JavaScript (deployed on GitHub Pages)
+- A **Google Colab notebook** showing how the model was built
 
 ## Features
 
@@ -26,14 +29,13 @@ It includes:
 
 ```
 .
-├── main.py               # FastAPI app (GET / and POST /predict)
-├── model_pipeline.pkl    # Trained preprocessing + RandomForest pipeline
-├── requirements.txt      # Python dependencies
-├── index.html            # Web UI
+├── main.py                                  # FastAPI app (GET / and POST /predict)
+├── model_pipeline.pkl                       # Trained preprocessing + RandomForest pipeline
+├── requirements.txt                         # Python dependencies
+├── index.html                               # Web UI
 ├── style.css
 ├── script.js
-└── notebooks/
-    └── YOUR_NOTEBOOK.ipynb   # Colab notebook (training and evaluation)
+└── Nyc_airbnb_roomtype_classification.ipynb # Colab notebook (training and evaluation)
 ```
 
 ## The model
@@ -45,10 +47,9 @@ It includes:
 | Classifier | `RandomForestClassifier` (200 trees, max depth 20, balanced class weights) |
 | Numeric features | price, minimum_nights, number_of_reviews, reviews_per_month, calculated_host_listings_count, availability_365, latitude, longitude (median-imputed, standardised) |
 | Categorical features | neighbourhood_group, neighbourhood (most-frequent imputed, one-hot encoded) |
+| Accuracy | Accuracy : 85% |
 
-Add your evaluation results here, for example accuracy and per-class F1 from the notebook.
-
-## Getting started
+## Run it locally
 
 ### 1. Install
 
@@ -64,23 +65,17 @@ pip install -r requirements.txt
 
 `scikit-learn` is pinned to `1.6.1` because that is the version the pipeline was saved with. Other versions may fail to load it or behave differently.
 
-### 2. Run the API
+### 2. Start the API
 
 ```bash
 uvicorn main:app --reload
 ```
 
-The API runs at `http://127.0.0.1:8000`. Interactive docs are at `http://127.0.0.1:8000/docs`.
+The API runs at `http://127.0.0.1:8000`, with interactive docs at `http://127.0.0.1:8000/docs`.
 
 ### 3. Open the UI
 
-Open `index.html` in your browser, or serve it locally:
-
-```bash
-python -m http.server 5500
-```
-
-Then visit `http://localhost:5500`. If your API runs somewhere else, click the status pill at the top right and change the base URL.
+Open `index.html` in your browser. To use your local API, click the status pill at the top right and set the base URL to `http://127.0.0.1:8000`.
 
 ## API
 
@@ -125,6 +120,13 @@ Response:
 | calculated_host_listings_count | integer, 0 or more |
 | availability_365 | integer, 0 to 365 |
 
+## Deployment
+
+| Part | Platform | Notes |
+|---|---|---|
+| Backend | Render (web service) | Build: `pip install -r requirements.txt`. Start: `uvicorn main:app --host 0.0.0.0 --port $PORT`. Set `PYTHON_VERSION` to `3.12.8`. |
+| Frontend | GitHub Pages | Served from the `main` branch, root folder. |
+
 ## Notes
 
 - Only load `.pkl` files you trust. Pickle files can run code when loaded.
@@ -134,6 +136,6 @@ Response:
 
 Python, FastAPI, Pydantic, scikit-learn, pandas, HTML, CSS, JavaScript
 
-## License
+## Author
 
-Add a license of your choice (for example MIT).
+Dishita ([@dishita12-art](https://github.com/dishita12-art))
