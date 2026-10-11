@@ -1,0 +1,10 @@
+# Backend (FastAPI) dependencies
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pandas>=2.0
+numpy>=1.26
+joblib>=1.3
+# Must match the version the model_pipeline.pkl was trained with.
+# Loading it with a different version can fail or give wrong results.
+scikit-learn==1.6.1

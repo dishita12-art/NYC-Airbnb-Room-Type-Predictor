@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <title>Room Type Predictor · NYC listings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="skyline" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="brand">
+      <span class="bullet bullet--sm" aria-hidden="true">R</span>
+      <div>
+        <h1>Room type predictor</h1>
+        <p>Describe a New York listing. The model tells you what kind of room it is.</p>
+      </div>
+    </div>
+    <button type="button" id="statusBtn" class="status" aria-haspopup="dialog">
+      <span class="dot" id="statusDot"></span>
+      <span id="statusText">Checking API…</span>
+    </button>
+  </header>
+
+  <main class="layout">
+    <!-- ============ FORM ============ -->
+    <form id="form" class="form" novalidate autocomplete="off">
+
+      <section class="card">
+        <div class="card__head">
+          <h2>Where is it?</h2>
+          <p>Pick a borough and neighbourhood, then fine-tune the exact spot on the map.</p>
+        </div>
+
+        <div class="grid grid--2">
+          <label class="field">
+            <span class="field__label">Borough</span>
+            <select id="neighbourhood_group" name="neighbourhood_group"></select>
+          </label>
+          <label class="field">
+            <span class="field__label">Neighbourhood</span>
+            <select id="neighbourhood" name="neighbourhood"></select>
+          </label>
+        </div>
+
+        <div class="pad" id="padWrap">
+          <canvas id="pad" tabindex="0" aria-label="Location picker. Click or drag to set latitude and longitude."></canvas>
+          <span class="pad__hint">Click or drag to place the listing</span>
+        </div>
+
+        <div class="grid grid--2">
+          <label class="field">
+            <span class="field__label">Latitude</span>
+            <input type="number" id="latitude" name="latitude" step="0.0001" inputmode="decimal" />
+            <span class="field__error" data-error-for="latitude"></span>
+          </label>
+          <label class="field">
+            <span class="field__label">Longitude</span>
+            <input type="number" id="longitude" name="longitude" step="0.0001" inputmode="decimal" />
+            <span class="field__error" data-error-for="longitude"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head">
+          <h2>The listing</h2>
+          <p>Price and booking rules are some of the strongest signals for room type.</p>
+        </div>
+
+        <div class="field">
+          <div class="field__row">
+            <label class="field__label" for="price">Price per night</label>
+            <div class="affix"><span>$</span><input type="number" id="price" name="price" min="1" step="1" inputmode="numeric" /></div>
+          </div>
+          <input type="range" id="priceRange" min="10" max="1000" step="5" aria-label="Price per night slider" />
+          <span class="field__error" data-error-for="price"></span>
+        </div>
+
+        <div class="field">
+          <div class="field__row">
+            <label class="field__label" for="availability_365">Days available this year</label>
+            <div class="affix"><input type="number" id="availability_365" name="availability_365" min="0" max="365" step="1" inputmode="numeric" /><span>/ 365</span></div>
+          </div>
+          <input type="range" id="availRange" min="0" max="365" step="1" aria-label="Availability slider" />
+          <span class="field__error" data-error-for="availability_365"></span>
+        </div>
+
+        <div class="field">
+          <span class="field__label">Minimum nights</span>
+          <div class="stepper">
+            <button type="button" data-step="-1" data-target="minimum_nights" aria-label="Decrease minimum nights">−</button>
+            <input type="number" id="minimum_nights" name="minimum_nights" min="1" max="365" step="1" inputmode="numeric" />
+            <button type="button" data-step="1" data-target="minimum_nights" aria-label="Increase minimum nights">+</button>
+          </div>
+          <span class="field__error" data-error-for="minimum_nights"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__head">
+          <h2>Reviews and host</h2>
+          <p>How busy the listing is, and how many others the host runs.</p>
+        </div>
+
+        <div class="grid grid--3">
+          <label class="field">
+            <span class="field__label">Total reviews</span>
+            <input type="number" id="number_of_reviews" name="number_of_reviews" min="0" step="1" inputmode="numeric" />
+            <span class="field__error" data-error-for="number_of_reviews"></span>
+          </label>
+          <label class="field">
+            <span class="field__label">Reviews per month</span>
+            <input type="number" id="reviews_per_month" name="reviews_per_month" min="0" step="0.01" inputmode="decimal" />
+            <span class="field__error" data-error-for="reviews_per_month"></span>
+          </label>
+          <label class="field">
+            <span class="field__label">Host's listings</span>
+            <input type="number" id="calculated_host_listings_count" name="calculated_host_listings_count" min="0" step="1" inputmode="numeric" />
+            <span class="field__error" data-error-for="calculated_host_listings_count"></span>
+          </label>
+        </div>
+      </section>
+
+      <div class="actions">
+        <div class="presets" role="group" aria-label="Quick examples">
+          <span class="presets__label">Try an example</span>
+          <button type="button" class="chip" data-preset="midtown">Midtown studio</button>
+          <button type="button" class="chip" data-preset="bushwick">Bushwick bedroom</button>
+          <button type="button" class="chip" data-preset="shared">Budget shared</button>
+          <button type="button" class="chip chip--ghost" id="randomBtn">Surprise me</button>
+        </div>
+
+        <div class="actions__main">
+          <label class="switch">
+            <input type="checkbox" id="liveToggle" />
+            <span class="switch__track"><span class="switch__thumb"></span></span>
+            <span class="switch__text">Update as I change things</span>
+          </label>
+          <button type="submit" class="btn" id="predictBtn">
+            <span class="btn__label">Predict room type</span>
+            <span class="btn__spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- ============ RESULT ============ -->
+    <aside class="side">
+      <section class="card card--result" id="resultCard" data-state="empty" aria-live="polite">
+
+        <div class="state state--empty">
+          <div class="ghost-bullets" aria-hidden="true">
+            <span class="bullet bullet--ghost">E</span>
+            <span class="bullet bullet--ghost">P</span>
+            <span class="bullet bullet--ghost">S</span>
+          </div>
+          <h2>No prediction yet</h2>
+          <p>Fill in the listing and choose <strong>Predict room type</strong>. Or pick an example to see how it works.</p>
+        </div>
+
+        <div class="state state--loading">
+          <div class="skeleton skeleton--circle"></div>
+          <div class="skeleton skeleton--line"></div>
+          <div class="skeleton skeleton--line short"></div>
+          <div class="skeleton skeleton--bar"></div>
+          <div class="skeleton skeleton--bar"></div>
+          <div class="skeleton skeleton--bar"></div>
+        </div>
+
+        <div class="state state--error">
+          <h2>Couldn't get a prediction</h2>
+          <p id="errorText"></p>
+          <button type="button" class="btn btn--ghost" id="retryBtn">Try again</button>
+        </div>
+
+        <div class="state state--result">
+          <div class="hero">
+            <div class="ring">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="ring__track" cx="60" cy="60" r="52" />
+                <circle class="ring__value" id="ringValue" cx="60" cy="60" r="52" />
+              </svg>
+              <span class="bullet bullet--lg" id="resBullet">E</span>
+            </div>
+            <div class="hero__text">
+              <p class="hero__kicker">Predicted room type</p>
+              <h2 id="resLabel">Entire home/apt</h2>
+              <p class="hero__blurb" id="resBlurb"></p>
+              <p class="hero__conf"><strong id="resConf">0%</strong> confident</p>
+            </div>
+          </div>
+
+          <ul class="bars" id="bars"></ul>
+        </div>
+      </section>
+
+      <section class="card card--history" id="historyCard" hidden>
+        <div class="card__head card__head--row">
+          <h2>Recent predictions</h2>
+          <button type="button" class="link" id="clearHistory">Clear</button>
+        </div>
+        <ul class="history" id="history"></ul>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ============ API DIALOG ============ -->
+  <dialog id="apiDialog">
+    <form method="dialog" class="dialog">
+      <h2>API connection</h2>
+      <p>The address where your FastAPI server is running.</p>
+      <label class="field">
+        <span class="field__label">Base URL</span>
+        <input type="url" id="apiUrl" placeholder="http://127.0.0.1:8000" />
+      </label>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" value="cancel">Cancel</button>
+        <button class="btn" id="saveApi" value="save">Save and check</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
